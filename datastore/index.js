@@ -45,7 +45,6 @@ exports.readAll = (callback) => {
 exports.readOne = (id, callback) => {
   fs.readFile(exports.dataDir + '/' + id + '.txt', (err, data) => {
     if (err) {
-      console.log(exports.dataDir + '/' + id);
       callback(err);
     } else {
       callback(null, {id: id, text: data.toString()});
