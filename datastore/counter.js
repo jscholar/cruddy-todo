@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const sprintf = require('sprintf-js').sprintf;
 
-var counter = 0;
 
 // Private helper functions ////////////////////////////////////////////////////
 
@@ -15,6 +14,9 @@ const zeroPaddedNumber = (num) => {
   return sprintf('%05d', num);
 };
 
+/**
+ * Passes count as a Number into callback
+ */
 const readCounter = (callback) => {
   fs.readFile(exports.counterFile, (err, fileData) => {
     if (err) {
@@ -31,16 +33,28 @@ const writeCounter = (count, callback) => {
     if (err) {
       throw ('error writing counter');
     } else {
+      // Successfully wrote data
       callback(null, counterString);
     }
   });
 };
 
 // Public API - Fix this function //////////////////////////////////////////////
+var counter = 0;
 
-exports.getNextUniqueId = () => {
-  counter = counter + 1;
-  return zeroPaddedNumber(counter);
+exports.getNextUniqueId = (callback) => {
+  // Read contents of counter
+  readCounter((error, count) => {
+    if (error) {
+      callback(err);
+    } else {
+      // Successfully read data
+      writeCounter(count + 1, (error, countString) => {
+        callback(null, countString);
+      });
+    }
+  });
+  //
 };
 
 
