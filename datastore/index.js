@@ -54,11 +54,17 @@ exports.readOne = (id, callback) => {
 
 exports.update = (id, text, callback) => {
   // call read file, its simle after taht
-  fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, null, (err) => {
-    if (err) {
-      callback(err);
+  fs.readFile(path.join(exports.dataDir, `${id}.txt`), (err, data) => {
+    if (!err) {
+      fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, null, (err) => {
+        if (err) {
+          callback(err);
+        } else {
+          callback(null, {id, text});
+        }
+      });
     } else {
-      callback(null, {id, text});
+      callback(err);
     }
   });
 };
