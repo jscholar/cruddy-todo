@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const sprintf = require('sprintf-js').sprintf;
+const Promise = require('bluebird');
 
 
 // Private helper functions ////////////////////////////////////////////////////
@@ -56,6 +57,8 @@ exports.getNextUniqueId = (callback) => {
   });
   //
 };
+
+exports.getNextUniqueId = Promise.promisify(exports.getNextUniqueId);
 
 
 

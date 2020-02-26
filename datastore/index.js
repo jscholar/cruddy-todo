@@ -13,7 +13,12 @@ exports.create = (text, callback) => {
     if (err) {
       callback(err);
     } else {
-      fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, null, (err) => {
+      var todoObject = {
+        id: id,
+        text: text,
+        createTime: Date.now()
+      };
+      fs.writeFile(path.join(exports.dataDir, `${id}.json`), JSON.stringify(todoObject), null, (err) => {
         if (err) {
           callback(err);
         } else {
@@ -24,42 +29,45 @@ exports.create = (text, callback) => {
   });
 };
 
-exports.readAll = (cb) => {
+exports.readAll = (callback) => {
 
   var readOneAsync = Promise.promisify(exports.readOne);
   fs.readdir(exports.dataDir, (e, files) => {
     if (e) {
-      cb(e);
+      callback(e);
     } else {
       // Filenames retrieved
-      var todoPromises = files.map(filename => readOneAsync(filename.slice(0, filename.length - 4)));
+      var todoPromises = files.map(filename => readOneAsync(filename.slice(0, filename.length - 5)));
 
       Promise.all(todoPromises)
-        .then(d => cb(null, d))
-        .catch(cb);
+        .then(d => callback(null, d))
+        .catch(callback);
     }
   });
 };
 
 exports.readOne = (id, callback) => {
-  fs.readFile(exports.dataDir + '/' + id + '.txt', (err, data) => {
+  fs.readFile(exports.dataDir + '/' + id + '.json', (err, data) => {
     if (err) {
       callback(err);
     } else {
-      callback(null, { id: id, text: data.toString() });
+      callback(null, JSON.parse(data));
     }
   });
 };
 
 exports.update = (id, text, callback) => {
   // call read file, its simle after taht
-  fs.readFile(path.join(exports.dataDir, `${id}.txt`), (err, data) => {
+  fs.readFile(path.join(exports.dataDir, `${id}.json`), (err, data) => {
     if (!err) {
-      fs.writeFile(path.join(exports.dataDir, `${id}.txt`), text, null, (err) => {
+      var parsed = JSON.parse(data);
+      parsed['updatedTime'] = Date.now();
+      parsed['text'] = text;
+      fs.writeFile(path.join(exports.dataDir, `${id}.json`), JSON.stringify(parsed), null, (err) => {
         if (err) {
           callback(err);
         } else {
-          callback(null, { id, text });
+          callback(null, parsed);
         }
       });
     } else {
@@ -88,3 +96,10 @@ exports.initialize = () => {
     fs.mkdirSync(exports.dataDir);
   }
 };
+
+exports.create = Promise.promisify(exports.create);
+exports.readAll = Promise.promisify(exports.readAll);
+exports.readOne = Promise.promisify(exports.readOne);
+exports.update = Promise.promisify(exports.update);
+exports.delete = Promise.promisify(exports.delete);
+
